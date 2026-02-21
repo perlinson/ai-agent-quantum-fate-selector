@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎲 量子命运选择器 - Quantum Fate Selector</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #0a0a1a;
+            --bg-card: #12122a;
+            --accent-quantum: #9d4edd;
+            --accent-energy: #00f5d4;
+            --accent-warning: #fee440;
+            --accent-danger: #f15bb5;
+            --text-primary: #e0e0ff;
+            --text-secondary: #8888aa;
+            --border-glow: rgba(157, 78, 221, 0.3);
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(ellipse at top, rgba(157, 78, 221, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom, rgba(0, 245, 212, 0.1) 0%, transparent 50%),
+                repeating-linear-gradient(0deg, transparent, transparent 50px, rgba(157, 78, 221, 0.03) 50px, rgba(157, 78, 221, 0.03) 51px),
+                repeating-linear-gradient(90deg, transparent, transparent 50px, rgba(157, 78, 221, 0.03) 50px, rgba(157, 78, 221, 0.03) 51px);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 0;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, var(--accent-quantum), var(--accent-energy));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            animation: glow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 10px rgba(157, 78, 221, 0.5)); }
+            to { filter: drop-shadow(0 0 20px rgba(0, 245, 212, 0.5)); }
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1em;
+        }
+
+        .game-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 1024px) {
+            .game-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border-glow);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .panel-title {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .player-stats {
+            display: grid;
+            gap: 12px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .stat-row:hover {
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateX(4px);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+        }
+
+        .stat-value {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .energy-value { color: var(--accent-energy); }
+        .token-value { color: var(--accent-quantum); }
+        .entangle-value { color: var(--accent-warning); }
+
+        .universe-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 12px;
+        }
+
+        .universe-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .universe-card:hover {
+            background: rgba(157, 78, 221, 0.1);
+            transform: scale(1.05);
+        }
+
+        .universe-card.discovered {
+            border-color: var(--accent-quantum);
+            box-shadow: 0 0 20px rgba(157, 78, 221, 0.3);
+        }
+
+        .universe-card.superposition {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .universe-emoji {
+            font-size: 2em;
+            margin-bottom: 8px;
+        }
+
+        .universe-name {
+            font-size: 0.85em;
+            margin-bottom: 4px;
+        }
+
+        .universe-value {
+            color: var(--accent-energy);
+            font-size: 0.8em;
+        }
+
+        .universe-state {
+            font-size: 0.7em;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-top: 6px;
+            display: inline-block;
+        }
+
+        .state-superposition { background: var(--accent-warning); color: #000; }
+        .state-collapsed { background: var(--accent-quantum); color: #fff; }
+
+        .action-buttons {
+            display: grid;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        button {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-quantum), #7b2cbf);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(157, 78, 221, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(0, 245, 212, 0.1);
+            color: var(--accent-energy);
+            border: 1px solid var(--accent-energy);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0, 245, 212, 0.2);
+        }
+
+        .btn-warning {
+            background: rgba(254, 228, 64, 0.1);
+            color: var(--accent-warning);
+            border: 1px solid var(--accent-warning);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .log-container {
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Consolas', monospace;
+            font-size: 0.9em;
+        }
+
+        .log-entry {
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.02);
+            border-left: 3px solid var(--accent-quantum);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .log-turn { color: var(--accent-energy); }
+        .log-action { color: var(--text-primary); }
+        .log-error { color: var(--accent-danger); }
+        .log-event { 
+            background: rgba(254, 228, 64, 0.1); 
+            border-left-color: var(--accent-warning);
+        }
+
+        .leaderboard {
+            margin-top: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        th {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.9em;
+        }
+
+        .rank-1 { color: #ffd700; }
+        .rank-2 { color: #c0c0c0; }
+        .rank-3 { color: #cd7f32; }
+
+        .psych-panel {
+            margin-top: 20px;
+        }
+
+        .psych-item {
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .psych-profile { background: rgba(157, 78, 221, 0.1); }
+        .psych-strengths { background: rgba(0, 245, 212, 0.1); }
+        .psych-weaknesses { background: rgba(241, 91, 181, 0.1); }
+        .psych-recommendations { background: rgba(254, 228, 64, 0.1); }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-quantum), var(--accent-energy));
+            transition: width 0.5s ease;
+        }
+
+        .turn-indicator {
+            text-align: center;
+            padding: 12px;
+            background: linear-gradient(135deg, rgba(157, 78, 221, 0.2), rgba(0, 245, 212, 0.2));
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎲 量子命运选择器</h1>
+            <p class="subtitle">Quantum Fate Selector - 在平行宇宙中书写你的命运</p>
+        </header>
+
+        <div class="turn-indicator">
+            第 <span id="currentTurn">1</span> / <span id="maxTurns">30</span> 回合
+            <div class="progress-bar">
+                <div class="progress-fill" id="turnProgress" style="width: 3.3%"></div>
+            </div>
+        </div>
+
+        <div class="game-layout">
+            <!-- 玩家状态 -->
+            <div class="panel">
+                <div class="panel-title">⚡ 玩家状态</div>
+                <div class="player-stats">
+                    <div class="stat-row">
+                        <span class="stat-label">🔮 量子能量</span>
+                        <span class="stat-value energy-value" id="quantumEnergy">100</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">🔀 时间线令牌</span>
+                        <span class="stat-value token-value" id="timelineTokens">10</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">⚡ 纠缠强度</span>
+                        <span class="stat-value entangle-value" id="entanglement">0.00</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">🌌 发现宇宙</span>
+                        <span class="stat-value" id="discovered">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">🎭 悖论点数</span>
+                        <span class="stat-value" id="paradox">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">🏆 总分</span>
+                        <span class="stat-value" id="score" style="color: var(--accent-warning)">0</span>
+                    </div>
+                </div>
+
+                <div class="psych-panel" id="psychPanel">
+                    <div class="panel-title" style="margin-top: 20px;">🧠 心理分析</div>
+                    <div id="psychContent"></div>
+                </div>
+            </div>
+
+            <!-- 宇宙池 -->
+            <div class="panel">
+                <div class="panel-title">🌌 宇宙探索</div>
+                <div class="universe-grid" id="universeGrid"></div>
+                
+                <div class="action-buttons">
+                    <button class="btn-primary" onclick="game.explore()" id="btnExplore">
+                        🔭 探索宇宙 (-10 能量)
+                    </button>
+                    <button class="btn-secondary" onclick="game.collapse()" id="btnCollapse">
+                        💫 坍缩量子态 (-5 能量)
+                    </button>
+                    <button class="btn-warning" onclick="game.entangle()" id="btnEntangle">
+                        🔗 创建纠缠
+                    </button>
+                    <button class="btn-secondary" onclick="game.playTurn()" id="btnNextTurn">
+                        ⏭️ 结束回合
+                    </button>
+                </div>
+            </div>
+
+            <!-- 游戏日志 -->
+            <div class="panel">
+                <div class="panel-title">📜 命运日志</div>
+                <div class="log-container" id="logContainer"></div>
+                
+                <div class="leaderboard">
+                    <div class="panel-title" style="margin-top: 20px;">🏆 排行榜</div>
+                    <table id="leaderboardTable">
+                        <thead>
+                            <tr>
+                                <th>排名</th>
+                                <th>玩家</th>
+                                <th>分数</th>
+                                <th>能量</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboardBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="index.js"></script>
+    <script>
+        // 浏览器端游戏控制器
+        class QuantumGameUI {
+            constructor() {
+                this.game = new QuantumFateSelector({
+                    name: '🌌 量子命运选择器',
+                    maxTurns: 30,
+                    dimensionGate: 5
+                });
+                
+                this.playerId = 'player1';
+                this.game.addPlayer(this.playerId, '🎮 玩家', 'balanced');
+                this.game.generateUniversePool(20);
+                
+                this.initUI();
+                this.log('欢迎来到量子命运选择器！开始你的平行宇宙探索之旅。', 'action');
+            }
+
+            initUI() {
+                this.updateUI();
+                this.renderUniverses();
+                this.updatePsych();
+            }
+
+            updateUI() {
+                const player = this.game.players.get(this.playerId);
+                
+                document.getElementById('currentTurn').textContent = this.game.currentTurn;
+                document.getElementById('maxTurns').textContent = this.game.maxTurns;
+                document.getElementById('turnProgress').style.width = 
+                    (this.game.currentTurn / this.game.maxTurns * 100) + '%';
+                
+                document.getElementById('quantumEnergy').textContent = 
+                    Math.floor(player.quantumEnergy);
+                document.getElementById('timelineTokens').textContent = 
+                    player.timelineTokens;
+                document.getElementById('entanglement').textContent = 
+                    player.entanglementStrength.toFixed(2);
+                document.getElementById('discovered').textContent = 
+                    player.discoveredUniverses.length;
+                document.getElementById('paradox').textContent = 
+                    player.paradoxPoints;
+                document.getElementById('score').textContent = 
+                    this.game.getScore(this.playerId);
+
+                // 更新按钮状态
+                document.getElementById('btnExplore').disabled = player.quantumEnergy < 10;
+                document.getElementById('btnCollapse').disabled = player.quantumEnergy < 5;
+                document.getElementById('btnEntangle').disabled = player.discoveredUniverses.length < 2;
+
+                this.renderLeaderboard();
+            }
+
+            renderUniverses() {
+                const grid = document.getElementById('universeGrid');
+                grid.innerHTML = '';
+
+                this.game.universes.forEach((uni, index) => {
+                    const card = document.createElement('div');
+                    card.className = `universe-card ${uni.discovered ? 'discovered' : ''} ${uni.quantumState === 'superposition' ? 'superposition' : ''}`;
+                    
+                    const value = uni.getResourceValue();
+                    
+                    card.innerHTML = `
+                        <div class="universe-emoji">${uni.type.emoji}</div>
+                        <div class="universe-name">${uni.type.name}</div>
+                        <div class="universe-value">${value}</div>
+                        <div class="universe-state state-${uni.quantumState}">
+                            ${uni.quantumState === 'superposition' ? '叠加态' : '坍缩态'}
+                        </div>
+                    `;
+                    
+                    card.onclick = () => this.observeUniverse(uni.id);
+                    grid.appendChild(card);
+                });
+            }
+
+            renderLeaderboard() {
+                const tbody = document.getElementById('leaderboardBody');
+                const rankings = this.game.getLeaderboard();
+                
+                tbody.innerHTML = rankings.map((r, i) => `
+                    <tr>
+                        <td class="rank-${i + 1}">${i + 1}</td>
+                        <td>${r.name}</td>
+                        <td>${r.score}</td>
+                        <td>${Math.floor(r.quantumEnergy)}</td>
+                    </tr>
+                `).join('');
+            }
+
+            updatePsych() {
+                const ai = new AIQuantumStrategy(this.game, this.playerId);
+                const psych = ai.getPsychAnalysis();
+                
+                if (!psych) return;
+                
+                const container = document.getElementById('psychContent');
+                container.innerHTML = '';
+                
+                const sections = [
+                    { title: '🎭 性格特征', data: psych.profile, class: 'psych-profile' },
+                    { title: '💪 优势', data: psych.strengths, class: 'psych-strengths' },
+                    { title: '⚠️ 劣势', data: psych.weaknesses, class: 'psych-weaknesses' },
+                    { title: '💡 建议', data: psych.recommendations, class: 'psych-recommendations' }
+                ];
+                
+                sections.forEach(section => {
+                    if (section.data && section.data.length > 0) {
+                        const div = document.createElement('div');
+                        div.className = `psych-item ${section.class}`;
+                        div.innerHTML = `<strong>${section.title}</strong><br>${section.data.join('<br>')}`;
+                        container.appendChild(div);
+                    }
+                });
+            }
+
+            log(message, type = 'action') {
+                const container = document.getElementById('logContainer');
+                const entry = document.createElement('div');
+                entry.className = `log-entry log-${type}`;
+                entry.innerHTML = `<span class="log-turn">[T${this.game.currentTurn}]</span> ${message}`;
+                container.insertBefore(entry, container.firstChild);
+            }
+
+            explore() {
+                const result = this.game.explore(this.playerId);
+                
+                if (result.error) {
+                    this.log(result.error, 'error');
+                    return;
+                }
+                
+                this.log(result.message || '探索完成', 'action');
+                this.updateUI();
+                this.renderUniverses();
+                this.updatePsych();
+            }
+
+            observeUniverse(universeId) {
+                const result = this.game.observeTimeline(this.playerId, universeId);
+                
+                if (result.error) {
+                    this.log(result.error, 'error');
+                    return;
+                }
+                
+                this.log(result.message || '观测完成', 'action');
+                this.updateUI();
+                this.renderUniverses();
+            }
+
+            collapse() {
+                const result = this.game.makeChoice(this.playerId, { type: 'collapse' });
+                
+                if (result.error) {
+                    this.log(result.error, 'error');
+                    return;
+                }
+                
+                this.log(result.message || '坍缩完成', 'action');
+                this.updateUI();
+                this.renderUniverses();
+            }
+
+            entangle() {
+                const result = this.game.makeChoice(this.playerId, { type: 'entangle' });
+                
+                if (result.error) {
+                    this.log(result.error, 'error');
+                    return;
+                }
+                
+                this.log(result.message || '纠缠创建', 'action');
+                this.updateUI();
+            }
+
+            playTurn() {
+                const result = this.game.playTurn(this.playerId);
+                
+                if (result.globalEvent) {
+                    this.log(`🌟 全局事件: ${result.globalEvent.name} - ${result.globalEvent.effect}`, 'event');
+                } else {
+                    this.log(`回合结束，能量 +${result.energyGained.toFixed(1)}`, 'action');
+                }
+                
+                this.updateUI();
+                
+                if (this.game.currentTurn >= this.game.maxTurns) {
+                    this.log('🎉 游戏结束！查看排行榜！', 'event');
+                }
+            }
+        }
+
+        // 启动游戏
+        let game;
+        window.onload = () => {
+            game = new QuantumGameUI();
+        };
+    </script>
+</body>
+</html>
